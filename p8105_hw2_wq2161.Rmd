@@ -1,0 +1,7 @@
+---
+title: "p8105_hw2_wq2161"
+author: "Wanxin Qi"
+date: "10/4/2021"
+output: github_document
+---
+
