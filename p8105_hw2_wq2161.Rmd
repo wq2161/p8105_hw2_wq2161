@@ -5,3 +5,65 @@ date: "10/4/2021"
 output: github_document
 ---
 
+```{r setup, echo = FALSE, message = FALSE}
+library(tidyverse)
+library(readxl)
+```
+
+## Problem 1
+
+### Part 1
+
+Read and clean the Mr. Trash Wheel sheet.
+
+```{r trash_wheel_df}
+trash_wheel_df = read_excel("data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "Mr. Trash Wheel", range = "A2:N535")
+
+trash_wheel_df =
+  trash_wheel_df %>%
+  janitor::clean_names() %>%
+  drop_na(dumpster) %>%
+  mutate(sports_balls = round(sports_balls))
+
+trash_wheel_df
+```
+
+### Part 2
+
+Read and clean precipitation data for 2018 and 2019.
+
+```{r precipitation_datasets}
+prcp_2018 = read_excel("data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "2018 Precipitation", range = "A2:B15")
+
+prcp_2018 =
+  prcp_2018 %>%
+  janitor::clean_names() %>%
+  drop_na(month, total) %>%
+  mutate(year = "2018") %>%
+  relocate(year)
+
+prcp_2019 = read_excel("data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "2019 Precipitation", range = "A2:B15")
+
+prcp_2019 =
+  prcp_2019 %>%
+  janitor::clean_names() %>%
+  drop_na(month, total) %>%
+  mutate(year = "2019") %>%
+  relocate(year)
+```
+
+Combine precipitation datasets and convert month to a character variable.
+
+```{r prcp_2018_2019}
+prcp_2018_2019 = 
+  bind_rows(prcp_2018, prcp_2019) %>%
+  mutate(month = month.name[month])
+
+prcp_2018_2019
+```
+
+### Part 3
+
+The datasets are collected by *Mr. Trash Wheel*. They are under the background of “a water-wheel vessel that removes trash from the Inner Harbor in Baltimore, Maryland.” The trash_wheel_df dataset contains `r ncol(trash_wheel_df)` variables and `r nrow(trash_wheel_df)` observations. It includes information on `r colnames(trash_wheel_df)`. The prcp_2018_2019 dataset is the combination of the total precipitation amounts by month in 2018 and 2019. The variables are `r colnames(prcp_2018_2019)`. It contains `r nrow(prcp_2018_2019)` observations. The total precipitation in 2018 was `r prcp_2018_2019 %>% filter(year == "2018") %>% pull(total) %>% sum()`. The median number of sports balls in a dumpster in 2019 is `r trash_wheel_df %>% filter(year == c("2019")) %>% pull(sports_balls) %>% median()`.
+
+
