@@ -9,6 +9,13 @@ output: github_document
 library(tidyverse)
 library(readxl)
 library(lubridate)
+library(ggridges)
+
+knitr::opts_chunk$set(
+  fig.width = 6,
+  fig.asp = .6,
+  out.width = "90%"
+)
 ```
 
 ## Problem 1
@@ -17,7 +24,7 @@ library(lubridate)
 
 Read and clean the Mr. Trash Wheel sheet.
 
-```{r trash_wheel_df}
+```{r trash_wheel_df, message = FALSE}
 trash_wheel_df = read_excel("data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "Mr. Trash Wheel", range = "A2:N535")
 
 trash_wheel_df =
@@ -33,7 +40,7 @@ trash_wheel_df
 
 Read and clean precipitation data for 2018 and 2019.
 
-```{r precipitation_datasets}
+```{r precipitation_datasets, message = FALSE}
 prcp_2018 = read_excel("data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "2018 Precipitation", range = "A2:B15")
 
 prcp_2018 =
@@ -55,7 +62,7 @@ prcp_2019 =
 
 Combine precipitation datasets and convert month to a character variable.
 
-```{r prcp_2018_2019}
+```{r prcp_2018_2019, message = FALSE}
 prcp_2018_2019 = 
   bind_rows(prcp_2018, prcp_2019) %>%
   mutate(month = month.name[month])
@@ -65,7 +72,7 @@ prcp_2018_2019
 
 ### Part 3
 
-The datasets are collected by *Mr. Trash Wheel*. They are under the background of “a water-wheel vessel that removes trash from the Inner Harbor in Baltimore, Maryland.” The trash_wheel_df dataset contains `r ncol(trash_wheel_df)` variables and `r nrow(trash_wheel_df)` observations. It includes information on `r colnames(trash_wheel_df)`. The prcp_2018_2019 dataset is the combination of the total precipitation amounts by month in 2018 and 2019. The variables are `r colnames(prcp_2018_2019)`. It contains `r nrow(prcp_2018_2019)` observations. The total precipitation in 2018 was `r prcp_2018_2019 %>% filter(year == "2018") %>% pull(total) %>% sum()`. The median number of sports balls in a dumpster in 2019 is `r trash_wheel_df %>% filter(year == c("2019")) %>% pull(sports_balls) %>% median()`.
+The datasets are collected by *Mr. Trash Wheel*. They are under the background of “a water-wheel vessel that removes trash from the Inner Harbor in Baltimore, Maryland.” The trash_wheel_df dataset contains `r ncol(trash_wheel_df)` variables and `r nrow(trash_wheel_df)` observations. It includes information on `r names(trash_wheel_df)`. The prcp_2018_2019 dataset is the combination of the total precipitation amounts by month in 2018 and 2019. The variables are `r names(prcp_2018_2019)`. It contains `r nrow(prcp_2018_2019)` observations. The total precipitation in 2018 was `r prcp_2018_2019 %>% filter(year == "2018") %>% pull(total) %>% sum()`. The median number of sports balls in a dumpster in 2019 is `r trash_wheel_df %>% filter(year == c("2019")) %>% pull(sports_balls) %>% median()`.
 
 
 ## Problem 2
@@ -112,7 +119,6 @@ snp_df =
   ) %>%
   arrange(year, month) %>%
   mutate(
-    year = as.numeric(year),
     month = as.numeric(month),
     month = month.name[month]
   ) %>%
@@ -164,7 +170,7 @@ unemployment_tidy
 
 Join the datasets by merging snp into pols, and merging unemployment into the result.
 
-```{r join_datasets}
+```{r join_datasets, message = FALSE}
 pols_month_date_df =
   pols_month_df %>%
   mutate(with_day = as.Date(paste(month, "01", year, sep = "-"), format = "%b-%d-%Y")) %>%
@@ -199,12 +205,97 @@ pols_snp_unemployment_df
 
 ### Part 5
 
-The pols-month dataset contains `r ncol(pols_month_df)` variables and `r nrow(pols_month_df)` observations related to the number of national politicians who are democratic or republican at any given time. The range of years starts from `r min(pull(pols_month_df, year))` to `r max(pull(pols_month_df, year))`. It includes information of `r colnames(pols_month_df)`.
+The pols-month dataset contains `r ncol(pols_month_df)` variables and `r nrow(pols_month_df)` observations related to the number of national politicians who are democratic or republican at any given time. The range of years starts from `r min(pull(pols_month_df, year))` to `r max(pull(pols_month_df, year))`. It includes information of `r names(pols_month_df)`.
 
-The snp dataset contains `r ncol(snp_df)` variables and `r nrow(snp_df)` observations related to Standard & Poor’s stock market index (S&P), often used as a representative measure of stock market as a whole. The range of years starts from `r min(pull(snp_df, year))` to `r max(pull(snp_df, year))`. It includes information of `r colnames(snp_df)`.
+The snp dataset contains `r ncol(snp_df)` variables and `r nrow(snp_df)` observations related to Standard & Poor’s stock market index (S&P), often used as a representative measure of stock market as a whole. The range of years starts from `r min(pull(snp_df, year))` to `r max(pull(snp_df, year))`. It includes information of `r names(snp_df)`.
 
-The unemployment dataset contains `r ncol(unemployment_tidy)` variables and `r nrow(unemployment_tidy)` observations related to percentage of unemployment. The range of years starts from `r min(pull(unemployment_tidy, year))` to `r max(pull(unemployment_tidy, year))`. It includes information of `r colnames(unemployment_tidy)`.
+The unemployment dataset contains `r ncol(unemployment_tidy)` variables and `r nrow(unemployment_tidy)` observations related to percentage of unemployment. The range of years starts from `r min(pull(unemployment_tidy, year))` to `r max(pull(unemployment_tidy, year))`. It includes information of `r names(unemployment_tidy)`.
 
-The pols_snp_unemployment dataset is a combination of the three datasets, which contains `r ncol(pols_snp_unemployment_df)` variables and `r nrow(pols_snp_unemployment_df)` observations. The range of years starts from `r min(substr(pull(pols_snp_unemployment_df, date), 1, 4))` to `r max(substr(pull(pols_snp_unemployment_df, date), 1, 4))`. It includes information of `r colnames(pols_snp_unemployment_df)`.
+The pols_snp_unemployment dataset is a combination of the three datasets, which contains `r ncol(pols_snp_unemployment_df)` variables and `r nrow(pols_snp_unemployment_df)` observations. The range of years starts from `r min(substr(pull(pols_snp_unemployment_df, date), 1, 4))` to `r max(substr(pull(pols_snp_unemployment_df, date), 1, 4))`. It includes information of `r names(pols_snp_unemployment_df)`.
+
+
+## Problem 3
+
+### Part 1
+
+Load and tidy the data.
+
+```{r pop_baby_names_df, message = FALSE}
+pop_baby_names_df = read_csv("data/Popular_Baby_Names.csv")
+
+pop_baby_names_df =
+  pop_baby_names_df %>%
+  janitor::clean_names() %>%
+  mutate(
+    gender = toupper(gender),
+    ethnicity = toupper(ethnicity),
+    childs_first_name = toupper(childs_first_name),
+    ethnicity = recode(ethnicity,
+           "ASIAN AND PACI" = "ASIAN AND PACIFIC ISLANDER",
+           "BLACK NON HISP" = "BLACK NON HISPANIC",
+           "WHITE NON HISP" = "WHITE NON HISPANIC"
+           )
+  ) %>%
+  distinct()
+
+pop_baby_names_df
+```
+
+### Part 2
+
+Produce a table showing the rank in popularity of the name “Olivia” as a female baby name over time.
+
+```{r olivia_df, message = FALSE}
+olivia_df =
+  pop_baby_names_df %>%
+  filter(childs_first_name == "OLIVIA", gender == "FEMALE") %>%
+  select(-count) %>%
+  pivot_wider(
+    names_from = "year_of_birth",
+    values_from = "rank"
+  )
+
+knitr::kable(olivia_df)
+```
+
+Produce a similar table showing the most popular name among male children over time.
+
+```{r male_pop_df, message = FALSE}
+male_pop_df =
+  pop_baby_names_df %>%
+  filter(gender == "MALE", rank == 1) %>%
+  select(-count, -rank) %>%
+  pivot_wider(
+    names_from = "year_of_birth",
+    values_from = "childs_first_name"
+  )
+
+knitr::kable(male_pop_df)
+```
+
+### Part 3
+
+For male, white non-hispanic children born in 2016, produce a scatter plot showing the number of children with a name (y axis) against the rank in popularity of that name (x axis).
+
+```{r count_rank_plot, message = FALSE}
+count_rank_df =
+  pop_baby_names_df %>%
+  filter(gender == "MALE", ethnicity == "WHITE NON HISPANIC", year_of_birth == 2016)
+
+count_rank_plot =
+  count_rank_df %>%
+  ggplot(aes(x = rank, y = count)) +
+  geom_point(alpha = 0.3) +
+  labs(
+    title = "Number of Children With a Name vs. Rank of That Name",
+    subtitle = "For Male, White Non-Hispanic, Born in 2016",
+    x = "Rank of the name",
+    y = "Number of the name",
+    caption = "data from Popular_Baby_Names.csv"
+  ) +
+  theme_minimal()
+
+count_rank_plot
+```
 
 
